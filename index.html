@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PharmaSaathi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="masthead-main">
+      <img class="brand-mark" src="/src/assets/brand-mark.png" alt="PharmaSaathi mark" width="44" height="44">
+      <div>
+        <p class="eyebrow">Early-warning &middot; Public health supply chain</p>
+        <h1><span class="brand-pharma">Pharma</span><span class="brand-saathi">Saathi</span></h1>
+        <p class="dek">Tracks essential-medicine stock across <b>28 facilities</b> in <b>7 zones</b> of Noida, Greater Noida &amp; Dadri, and flags correlated declines across facilities sharing a supply hub &mdash; the early signature of a regional shortage, not just a local one.</p>
+      </div>
+    </div>
+    <div class="masthead-actions">
+      <div class="masthead-btn-row">
+        <button type="button" class="view-db-btn" id="viewDbBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>
+          View Database
+        </button>
+        <button type="button" class="scan-invoice-btn" id="scanInvoiceBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M14 2v6h6"/><path d="m9 15 2 2 4-4"/></svg>
+          Scan Invoice
+        </button>
+      </div>
+      <div class="status-flag"><span class="dot"></span> Simulated feed &middot; last sync just now</div>
+    </div>
+  </div>
+
+  <div class="strip" id="statStrip"></div>
+
+  <div class="scrubber">
+    <button class="scrub-btn" id="playBtn" aria-label="Play" title="Play timeline">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" id="playIcon"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+    <div class="scrub-track-wrap">
+      <div class="scrub-labels"><span id="scrubStartLbl">Day 0</span><span class="hint">Drag to replay the last 90 days</span><span id="scrubEndLbl">Today</span></div>
+      <input type="range" id="scrubRange" min="0" max="90" value="90" step="1">
+    </div>
+    <div class="scrub-date"><div class="d num" id="scrubDateLbl">&mdash;</div><div class="l" id="scrubDayLbl">Day 90 of 90</div></div>
+    <button class="jump-btn" id="jumpToday">Jump to today</button>
+  </div>
+
+  <div class="alert" id="alertBanner">
+    <div class="alert-icon">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><circle cx="12" cy="16.3" r=".6" fill="currentColor" stroke="none"/><path d="M10.3 3.9 1.9 18a1.6 1.6 0 0 0 1.4 2.4h17.4a1.6 1.6 0 0 0 1.4-2.4L13.7 3.9a1.6 1.6 0 0 0-2.8 0Z"/></svg>
+    </div>
+    <div class="alert-body">
+      <p class="alert-title" id="alertTitle"></p>
+      <p class="alert-text" id="alertText"></p>
+    </div>
+    <a class="alert-link" href="#signalsPanel">View signal &darr;</a>
+  </div>
+
+  <div class="ven-row">
+    <span class="ven-row-label">VEN filter</span>
+    <div class="ven-filter" id="venFilter"></div>
+    <div class="med-search-wrap">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
+      <input type="search" id="medSearchInput" class="med-search" placeholder="Search medicines&hellip;" aria-label="Search medicines by name or category">
+    </div>
+    <span class="alert-rule-note">Alert threshold = lead time + VEN safety buffer &middot; Vital +13d &middot; Essential +10d &middot; Non-essential +6d</span>
+  </div>
+  <div class="pillrow" id="pillRow"></div>
+
+  <div class="grid">
+    <section class="panel">
+      <div class="panel-head">
+        <p class="panel-title">Facilities</p>
+        <p class="panel-note" id="flistNote">Sorted by risk for the selected medicine</p>
+      </div>
+      <div class="fac-search-wrap">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
+        <input type="search" id="facSearchInput" class="fac-search" placeholder="Search facilities or districts&hellip;" aria-label="Search facilities by name or district">
+      </div>
+      <div class="panel-body flist" id="facilityList"></div>
+    </section>
+
+    <section class="panel netcanvas">
+      <div class="panel-head" style="border-bottom:none; padding-bottom:4px;">
+        <p class="panel-title">Supply network</p>
+        <p class="panel-note">Facilities orbit the upstream hub that supplies them &mdash; shared hubs are why declines correlate</p>
+      </div>
+      <div class="net-map-wrap">
+        <div id="netMap" role="img" aria-label="Interactive map of health facilities across Noida and Greater Noida, grouped by their supplying hub"></div>
+        <div class="net-zoom-controls">
+          <button type="button" class="net-zoom-btn" id="netZoomIn" aria-label="Zoom in">+</button>
+          <button type="button" class="net-zoom-btn" id="netZoomOut" aria-label="Zoom out">&minus;</button>
+          <button type="button" class="net-zoom-btn reset" id="netZoomReset" aria-label="Reset map view" title="Reset view">&#8634;</button>
+        </div>
+        <div class="net-hint">Scroll or pinch to zoom &middot; drag to pan &middot; click a marker</div>
+      </div>
+      <div class="net-legend" id="netLegend"></div>
+    </section>
+
+    <section class="panel" id="detailPanel">
+      <div class="detail-head">
+        <p class="detail-name" id="detName">&mdash;</p>
+        <p class="detail-sub" id="detSub">&mdash;</p>
+      </div>
+      <div class="detail-body">
+        <div class="kv-grid" id="detKv"></div>
+        <div class="chart-wrap" id="chartWrap">
+          <div class="chart-legend">
+            <span><i style="background:var(--accent)"></i>Stock on hand</span>
+            <span><i class="dot" style="background:var(--good)"></i>Replenishment</span>
+            <span><i style="background:var(--ink-muted); height:1px;"></i>Reorder point</span>
+          </div>
+          <svg id="chartSvg" viewBox="0 0 560 190" role="img" aria-label="Stock level over the trailing 45 days"></svg>
+          <div id="chartTip"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="lower-grid">
+    <section class="panel" id="signalsPanel">
+      <div class="panel-head">
+        <p class="panel-title">Emerging regional signals</p>
+        <p class="panel-note">Correlated declines across facilities on one hub &mdash; the pattern of a supply-side disruption, not isolated demand</p>
+      </div>
+      <div id="signalsBody"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <p class="panel-title">Redistribution opportunities</p>
+        <p class="panel-note">Nearby surplus that could reach an at-risk facility before it stocks out &mdash; ranked by urgency, checked for cold-chain feasibility</p>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Medicine</th><th>From</th><th>To</th><th>Units</th><th>Distance</th><th>Cold chain</th><th>Expiry buffer</th><th>Urgency</th></tr></thead>
+          <tbody id="redisBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel wide-panel">
+    <div class="panel-head">
+      <p class="panel-title">Demand spike early warning</p>
+      <p class="panel-note">Consumption running well above normal across a hub, flagged while stock is still healthy &mdash; a lead-time signal, distinct from the correlated-decline signals above, with a proactive transfer suggestion attached</p>
+    </div>
+    <div id="demandSignalsBody"></div>
+  </section>
+
+  <section class="panel wide-panel">
+    <div class="panel-head">
+      <p class="panel-title">Seasonal demand outlook &middot; next 30 days</p>
+      <p class="panel-note">Delhi-NCR sits at post-monsoon dengue season &mdash; the window where mosquito-borne disease, water-borne illness and waterlogging-linked snakebite move together</p>
+    </div>
+    <div class="seasonal-strip" id="seasonalStrip"></div>
+  </section>
+
+  <div class="lower-grid">
+    <section class="panel" id="expiryPanel">
+      <div class="panel-head">
+        <p class="panel-title">Expiry watch &middot; next 30 days</p>
+        <p class="panel-note">Batches on shelf that will expire before they'd normally be reordered &mdash; redistribute or use first</p>
+      </div>
+      <div id="expiryBody"></div>
+    </section>
+
+    <section class="panel" id="trustPanel">
+      <div class="panel-head">
+        <p class="panel-title">Facility &amp; supplier trust</p>
+        <p class="panel-note">Reporting consistency and delivery reliability &mdash; how much to lean on each source before redistributing through it</p>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Facility</th><th>Hub</th><th>Reporting</th><th>Trust score</th><th>Standing</th></tr></thead>
+          <tbody id="trustBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel wide-panel">
+    <div class="panel-head">
+      <p class="panel-title">Nearby available suppliers</p>
+      <p class="panel-note" id="suppliersNote">External sources near the selected facility's hub, for when internal redistribution can't cover the gap</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Supplier</th><th>Type</th><th>Lead time</th><th>Reliability</th><th>Note</th></tr></thead>
+        <tbody id="suppliersBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>Simulated data for demonstration &mdash; 28 facilities across 7 zones of Noida, Greater Noida &amp; Dadri, 90 days of synthetic inventory history with an embedded supply-hub disruption. Drag the timeline to watch it emerge.</footer>
+</div>
+
+<div class="invoice-modal" id="invoiceModal">
+  <div class="invoice-dialog">
+    <div class="invoice-dialog-head">
+      <div>
+        <p class="panel-title">Scan Invoice</p>
+        <p class="panel-note">Upload a delivery invoice (free, local OCR + text parsing &mdash; no API key, no account) and review each extracted line before it's saved</p>
+      </div>
+      <button type="button" class="invoice-modal-close" id="invoiceModalClose" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="invoice-dialog-body">
+      <div class="invoice-dropzone" id="invoiceDropzone">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m6 10 6-6 6 6"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+        <p id="invoiceDropzoneLabel">Drop an invoice image or PDF here, or click to choose a file</p>
+        <input type="file" id="invoiceFileInput" accept="image/*,application/pdf,.pdf" hidden>
+      </div>
+      <div class="invoice-or-divider"><span>or paste invoice text</span></div>
+      <textarea id="invoiceTextInput" class="invoice-textarea" rows="4" placeholder="Paste the invoice / delivery note text here&hellip;"></textarea>
+
+      <div class="invoice-actions-row">
+        <button type="button" class="btn-primary" id="invoiceExtractBtn">Extract line items</button>
+        <span class="invoice-spinner" id="invoiceSpinner" hidden>Extracting&hellip;</span>
+      </div>
+
+      <div id="invoiceWarning"></div>
+
+      <div class="invoice-preview-wrap" id="invoicePreviewWrap" hidden>
+        <p class="invoice-preview-hint">Review and correct anything highlighted before saving &mdash; amber fields mean the extraction wasn't confident.</p>
+        <div class="table-scroll">
+          <table class="invoice-preview-table">
+            <thead><tr><th>Medicine</th><th>Facility</th><th>Qty</th><th>Batch #</th><th>Expiry</th><th>Received</th><th></th></tr></thead>
+            <tbody id="invoicePreviewBody"></tbody>
+          </table>
+        </div>
+        <div class="invoice-actions-row">
+          <button type="button" class="btn-primary" id="invoiceConfirmBtn" disabled>Confirm &amp; save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="invoice-toast" id="invoiceToast"></div>
+
+<div class="invoice-modal" id="dbModal">
+  <div class="invoice-dialog db-dialog">
+    <div class="invoice-dialog-head">
+      <div>
+        <p class="panel-title">View Database</p>
+        <p class="panel-note">Read-only look at server/data/pharmasaathi.db &mdash; invoice receipts and everything derived from them</p>
+      </div>
+      <button type="button" class="invoice-modal-close" id="dbModalClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="invoice-dialog-body">
+      <div class="db-tabs-row" id="dbTabsRow"></div>
+      <div id="dbTableWrap"></div>
+      <div class="invoice-actions-row">
+        <button type="button" class="btn-primary" id="dbRefreshBtn">Refresh</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

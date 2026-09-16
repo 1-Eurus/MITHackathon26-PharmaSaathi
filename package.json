@@ -1,0 +1,26 @@
+{
+  "name": "pharmasaathi",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "PharmaSaathi - healthcare medicine-supply early-warning dashboard (simulated data), TypeScript + Vite.",
+  "scripts": {
+    "dev": "concurrently -n client,server -c blue,green \"npm:dev:client\" \"npm:dev:server\"",
+    "dev:client": "vite",
+    "dev:server": "node server/index.ts",
+    "build": "tsc --noEmit && tsc --noEmit -p server/tsconfig.json && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.22",
+    "@types/node": "^26.5.1",
+    "concurrently": "^10.0.5",
+    "typescript": "^5.6.2",
+    "vite": "^5.4.8"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "pdfjs-dist": "^6.3.289",
+    "tesseract.js": "^7.0.0"
+  }
+}
